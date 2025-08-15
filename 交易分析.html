@@ -116,7 +116,7 @@
                             <el-table-column label="操作" width="120">
                                 <template #default="scope">
                                     <el-button size="mini" @click="editTrade(scope.row)">编辑</el-button>
-                                    <el-button size="mini" type="danger" @click="deleteTrade(scope.$index)">删除</el-button>
+                                    <el-button size="mini" type="danger" @click="deleteTrade(scope.row)">删除</el-button>
                                 </template>
                             </el-table-column>
                         </el-table>
@@ -260,6 +260,9 @@
         createApp({
             components: {
                 ElButton, ElTable, ElTableColumn, ElDialog, ElForm, ElFormItem, ElInput, ElInputNumber, ElSelect, ElOption, ElDatePicker, ElPagination, ElTabs, ElTabPane, ElRow, ElCol, ElAlert
+            },
+            created() {
+                this.loadData();
             },
             data() {
                 return {
@@ -479,6 +482,15 @@
                 handleCurrentChange(page) {
                     this.currentPage = page;
                 },
+                saveData() {
+                    localStorage.setItem('trading_records', JSON.stringify(this.trades));
+                },
+                loadData() {
+                    const data = localStorage.getItem('trading_records');
+                    if (data) {
+                        this.trades = JSON.parse(data);
+                    }
+                },
                 saveTrade() {
                     if (this.isEditing) {
                         this.$set(this.trades, this.editingIndex, {...this.newTrade});
@@ -487,6 +499,7 @@
                     }
                     this.dialogVisible = false;
                     this.resetForm();
+                    this.saveData();
                     this.$nextTick(() => {
                         this.initCharts();
                     });
@@ -497,12 +510,19 @@
                     this.editingIndex = this.trades.indexOf(trade);
                     this.dialogVisible = true;
                 },
-                deleteTrade(index) {
-                    const realIndex = (this.currentPage - 1) * this.pageSize + index;
-                    this.trades.splice(realIndex, 1);
-                    this.$nextTick(() => {
-                        this.initCharts();
-                    });
+                deleteTrade(trade) {
+                    const index = this.trades.indexOf(trade);
+                    if (index > -1) {
+                        this.trades.splice(index, 1);
+                        // 如果删除了当前页的最后一条数据，且当前页不是第一页，则返回上一页
+                        if (this.paginatedTrades.length === 0 && this.currentPage > 1) {
+                            this.currentPage--;
+                        }
+                        this.saveData();
+                        this.$nextTick(() => {
+                            this.initCharts();
+                        });
+                    }
                 },
                 resetForm() {
                     this.newTrade = {
