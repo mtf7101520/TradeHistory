@@ -84,15 +84,26 @@
                         <el-button type="primary" @click="dialogVisible = true"><i class="el-icon-plus"></i> 添加交易记录</el-button>
                         <el-button @click="exportData" style="margin-left: 10px;">导出数据</el-button>
                     </div>
-                    <el-select v-model="selectedArchive" placeholder="选择月份" @change="handleArchiveChange">
-                        <el-option label="显示全部" value="all"></el-option>
-                        <el-option
-                            v-for="month in archiveMonths"
-                            :key="month"
-                            :label="month"
-                            :value="month">
-                        </el-option>
-                    </el-select>
+                    <div>
+                        <el-select v-model="selectedYear" placeholder="选择年份" @change="handleYearChange" style="width: 120px; margin-right: 10px;">
+                            <el-option label="全部年份" value="all"></el-option>
+                            <el-option
+                                v-for="year in availableYears"
+                                :key="year"
+                                :label="year"
+                                :value="year">
+                            </el-option>
+                        </el-select>
+                        <el-select v-model="selectedMonth" placeholder="选择月份" @change="handleMonthChange" :disabled="selectedYear === 'all'" style="width: 120px;">
+                            <el-option label="全部月份" value="all"></el-option>
+                            <el-option
+                                v-for="month in availableMonths"
+                                :key="month"
+                                :label="month + '月'"
+                                :value="month">
+                            </el-option>
+                        </el-select>
+                    </div>
                 </div>
                 <el-tabs v-model="activeTab" type="card">
                     <el-tab-pane label="交易记录" name="records">
@@ -273,9 +284,9 @@
             },
             created() {
                 this.loadData();
-                // Set default archive view to the latest month
-                if (this.archiveMonths.length > 0) {
-                    this.selectedArchive = this.archiveMonths[0];
+                // Set default view to the latest year
+                if (this.availableYears.length > 0) {
+                    this.selectedYear = this.availableYears[0];
                 }
             },
             data() {
@@ -287,7 +298,8 @@
                     editingTrade: null, // To store the original trade object during editing
                     currentPage: 1,
                     pageSize: 10,
-                    selectedArchive: 'all',
+                    selectedYear: 'all',
+                    selectedMonth: 'all',
                     // trades is now an object keyed by YYYY-MM
                     trades: {},
 
@@ -305,17 +317,39 @@
                 }
             },
             computed: {
-                // Returns an array of trades for the selected archive period
                 activeTrades() {
-                    if (this.selectedArchive === 'all') {
-                        // Flatten all trades from the archive object into a single array
-                        return Object.values(this.trades).flat().sort((a, b) => new Date(b.date) - new Date(a.date));
+                    let trades = [];
+                    if (this.selectedYear === 'all') {
+                        trades = Object.values(this.trades).flat();
+                    } else {
+                        if (this.selectedMonth === 'all') {
+                            // Filter by year
+                            trades = Object.keys(this.trades)
+                                .filter(key => key.startsWith(this.selectedYear))
+                                .map(key => this.trades[key])
+                                .flat();
+                        } else {
+                            // Filter by year and month
+                            const yearMonth = `${this.selectedYear}-${this.selectedMonth}`;
+                            trades = this.trades[yearMonth] || [];
+                        }
                     }
-                    return this.trades[this.selectedArchive] || [];
+                    return trades.sort((a, b) => new Date(b.date) - new Date(a.date));
                 },
-                archiveMonths() {
-                    // Get all YYYY-MM keys from trades and sort them descending
-                    return Object.keys(this.trades).sort().reverse();
+                availableYears() {
+                    const years = new Set(Object.keys(this.trades).map(key => key.substring(0, 4)));
+                    return Array.from(years).sort().reverse();
+                },
+                availableMonths() {
+                    if (this.selectedYear === 'all') {
+                        return [];
+                    }
+                    const months = new Set(
+                        Object.keys(this.trades)
+                            .filter(key => key.startsWith(this.selectedYear))
+                            .map(key => key.substring(5, 7)) // Extract MM
+                    );
+                    return Array.from(months).sort().reverse();
                 },
                 totalTrades() {
                     return this.activeTrades.length;
@@ -510,8 +544,15 @@
                 handleCurrentChange(page) {
                     this.currentPage = page;
                 },
-                handleArchiveChange() {
-                    this.currentPage = 1; // Reset to first page when archive changes
+                handleYearChange() {
+                    this.selectedMonth = 'all'; // Reset month when year changes
+                    this.handleFilterChange();
+                },
+                handleMonthChange() {
+                    this.handleFilterChange();
+                },
+                handleFilterChange() {
+                    this.currentPage = 1;
                     this.$nextTick(() => this.initCharts());
                 },
                 saveData() {
