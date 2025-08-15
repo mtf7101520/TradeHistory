@@ -113,10 +113,12 @@
                                 </template>
                             </el-table-column>
                             <el-table-column prop="notes" label="备注" min-width="150"></el-table-column>
-                            <el-table-column label="操作" width="120">
+                            <el-table-column label="操作" width="150">
                                 <template #default="scope">
-                                    <el-button size="mini" @click="editTrade(scope.row)">编辑</el-button>
-                                    <el-button size="mini" type="danger" @click="deleteTrade(scope.row)">删除</el-button>
+                                    <div style="display: flex; align-items: center;">
+                                        <el-button size="small" @click="editTrade(scope.row)">编辑</el-button>
+                                        <el-button size="small" type="danger" @click="deleteTrade(scope.row)">删除</el-button>
+                                    </div>
                                 </template>
                             </el-table-column>
                         </el-table>
