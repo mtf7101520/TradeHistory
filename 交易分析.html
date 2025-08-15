@@ -79,15 +79,23 @@
 
             <!-- 标签页导航 -->
             <div class="data-table">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <div>
+                        <el-button type="primary" @click="dialogVisible = true"><i class="el-icon-plus"></i> 添加交易记录</el-button>
+                        <el-button @click="exportData" style="margin-left: 10px;">导出数据</el-button>
+                    </div>
+                    <el-select v-model="selectedArchive" placeholder="选择月份" @change="handleArchiveChange">
+                        <el-option label="显示全部" value="all"></el-option>
+                        <el-option
+                            v-for="month in archiveMonths"
+                            :key="month"
+                            :label="month"
+                            :value="month">
+                        </el-option>
+                    </el-select>
+                </div>
                 <el-tabs v-model="activeTab" type="card">
                     <el-tab-pane label="交易记录" name="records">
-                        <div style="margin-bottom: 20px;">
-                            <el-button type="primary" @click="dialogVisible = true">
-                                <i class="el-icon-plus"></i> 添加交易记录
-                            </el-button>
-                            <el-button @click="exportData" style="margin-left: 10px;">导出数据</el-button>
-                        </div>
-                        
                         <el-table :data="paginatedTrades" stripe style="width: 100%">
                             <el-table-column prop="date" label="日期" width="120"></el-table-column>
                             <el-table-column prop="stock" label="股票代码" width="100"></el-table-column>
@@ -265,6 +273,10 @@
             },
             created() {
                 this.loadData();
+                // Set default archive view to the latest month
+                if (this.archiveMonths.length > 0) {
+                    this.selectedArchive = this.archiveMonths[0];
+                }
             },
             data() {
                 return {
@@ -272,14 +284,13 @@
                     dialogVisible: false,
                     isEditing: false,
                     editingIndex: -1,
+                    editingTrade: null, // To store the original trade object during editing
                     currentPage: 1,
                     pageSize: 10,
-                    trades: [
-                        { date: '2024-01-15', stock: '000001', stockName: '平安银行', type: 'buy', quantity: 100, price: 15.20, profit: 150.00, notes: '技术面良好', failureReason: '' },
-                        { date: '2024-01-16', stock: '000002', stockName: '万科A', type: 'sell', quantity: 200, price: 18.50, profit: -320.00, notes: '止损出局', failureReason: '未及时关注政策风险，房地产板块整体下跌' },
-                        { date: '2024-01-17', stock: '600519', stockName: '贵州茅台', type: 'add', quantity: 10, price: 1680.00, profit: 500.00, notes: '长期持有', failureReason: '' },
-                        { date: '2024-01-18', stock: '600036', stockName: '招商银行', type: 'buy', quantity: 300, price: 42.10, profit: -180.00, notes: '银行股调整', failureReason: '忽略了银行业净息差收窄的影响，过早入场' }
-                    ],
+                    selectedArchive: 'all',
+                    // trades is now an object keyed by YYYY-MM
+                    trades: {},
+
                     newTrade: {
                         date: new Date().toISOString().split('T')[0],
                         stock: '',
@@ -294,14 +305,26 @@
                 }
             },
             computed: {
+                // Returns an array of trades for the selected archive period
+                activeTrades() {
+                    if (this.selectedArchive === 'all') {
+                        // Flatten all trades from the archive object into a single array
+                        return Object.values(this.trades).flat().sort((a, b) => new Date(b.date) - new Date(a.date));
+                    }
+                    return this.trades[this.selectedArchive] || [];
+                },
+                archiveMonths() {
+                    // Get all YYYY-MM keys from trades and sort them descending
+                    return Object.keys(this.trades).sort().reverse();
+                },
                 totalTrades() {
-                    return this.trades.length;
+                    return this.activeTrades.length;
                 },
                 totalProfit() {
-                    return this.trades.reduce((sum, trade) => sum + trade.profit, 0);
+                    return this.activeTrades.reduce((sum, trade) => sum + trade.profit, 0);
                 },
                 winRate() {
-                    const winTrades = this.trades.filter(trade => trade.profit > 0).length;
+                    const winTrades = this.activeTrades.filter(trade => trade.profit > 0).length;
                     return this.totalTrades > 0 ? Math.round((winTrades / this.totalTrades) * 100) : 0;
                 },
                 avgProfit() {
@@ -309,11 +332,12 @@
                 },
                 paginatedTrades() {
                     const start = (this.currentPage - 1) * this.pageSize;
-                    return this.trades.slice(start, start + this.pageSize);
+                    const end = start + this.pageSize;
+                    return this.activeTrades.slice(start, end);
                 },
                 profitRanking() {
                     const stockProfits = {};
-                    this.trades.forEach(trade => {
+                    this.activeTrades.forEach(trade => {
                         const key = trade.stock;
                         if (!stockProfits[key]) {
                             stockProfits[key] = {
@@ -331,7 +355,7 @@
                 },
                 lossRanking() {
                     const stockProfits = {};
-                    this.trades.forEach(trade => {
+                    this.activeTrades.forEach(trade => {
                         const key = trade.stock;
                         if (!stockProfits[key]) {
                             stockProfits[key] = {
@@ -348,7 +372,7 @@
                         .slice(0, 10);
                 },
                 failedTrades() {
-                    return this.trades
+                    return this.activeTrades
                         .filter(trade => trade.profit < 0)
                         .sort((a, b) => new Date(b.date) - new Date(a.date));
                 },
@@ -386,7 +410,9 @@
                     const myChart = echarts.init(chartDom);
                     
                     let cumulativeProfit = 0;
-                    const data = this.trades.map((trade, index) => {
+                    // Sort trades by date to ensure correct cumulative profit calculation
+                    const sortedTrades = [...this.activeTrades].sort((a, b) => new Date(a.date) - new Date(b.date));
+                    const data = sortedTrades.map((trade, index) => {
                         cumulativeProfit += trade.profit;
                         return {
                             date: trade.date,
@@ -484,46 +510,82 @@
                 handleCurrentChange(page) {
                     this.currentPage = page;
                 },
+                handleArchiveChange() {
+                    this.currentPage = 1; // Reset to first page when archive changes
+                    this.$nextTick(() => this.initCharts());
+                },
                 saveData() {
-                    localStorage.setItem('trading_records', JSON.stringify(this.trades));
+                    localStorage.setItem('trading_records_archive', JSON.stringify(this.trades));
                 },
                 loadData() {
-                    const data = localStorage.getItem('trading_records');
+                    const data = localStorage.getItem('trading_records_archive');
                     if (data) {
                         this.trades = JSON.parse(data);
+                        return;
+                    }
+                    
+                    // Migration logic for old data format
+                    const oldData = localStorage.getItem('trading_records');
+                    if (oldData) {
+                        const oldTrades = JSON.parse(oldData);
+                        if (Array.isArray(oldTrades)) {
+                            this.trades = oldTrades.reduce((acc, trade) => {
+                                const month = trade.date.substring(0, 7); // YYYY-MM
+                                if (!acc[month]) {
+                                    acc[month] = [];
+                                }
+                                acc[month].push(trade);
+                                return acc;
+                            }, {});
+                            this.saveData(); // Save in new format
+                            localStorage.removeItem('trading_records'); // Remove old data
+                        }
                     }
                 },
                 saveTrade() {
+                    const trade = { ...this.newTrade };
+                    const month = trade.date.substring(0, 7);
+
                     if (this.isEditing) {
-                        this.$set(this.trades, this.editingIndex, {...this.newTrade});
-                    } else {
-                        this.trades.push({...this.newTrade});
+                        // Find and remove the old trade record before adding the updated one
+                        const oldMonth = this.editingTrade.date.substring(0, 7);
+                        const oldIndex = this.trades[oldMonth].findIndex(t => t.date === this.editingTrade.date && t.stock === this.editingTrade.stock);
+                        if (oldIndex > -1) {
+                            this.trades[oldMonth].splice(oldIndex, 1);
+                            if (this.trades[oldMonth].length === 0) {
+                                delete this.trades[oldMonth];
+                            }
+                        }
                     }
+
+                    if (!this.trades[month]) {
+                        this.trades[month] = [];
+                    }
+                    this.trades[month].push(trade);
+
                     this.dialogVisible = false;
                     this.resetForm();
                     this.saveData();
-                    this.$nextTick(() => {
-                        this.initCharts();
-                    });
+                    this.$nextTick(() => this.initCharts());
                 },
                 editTrade(trade) {
-                    this.newTrade = {...trade};
+                    this.editingTrade = trade; // Store the original trade object for editing
+                    this.newTrade = { ...trade };
                     this.isEditing = true;
-                    this.editingIndex = this.trades.indexOf(trade);
                     this.dialogVisible = true;
                 },
                 deleteTrade(trade) {
-                    const index = this.trades.indexOf(trade);
-                    if (index > -1) {
-                        this.trades.splice(index, 1);
-                        // 如果删除了当前页的最后一条数据，且当前页不是第一页，则返回上一页
-                        if (this.paginatedTrades.length === 0 && this.currentPage > 1) {
-                            this.currentPage--;
+                    const month = trade.date.substring(0, 7);
+                    if (this.trades[month]) {
+                        const index = this.trades[month].findIndex(t => t === trade);
+                        if (index > -1) {
+                            this.trades[month].splice(index, 1);
+                            if (this.trades[month].length === 0) {
+                                delete this.trades[month];
+                            }
+                            this.saveData();
+                            this.$nextTick(() => this.initCharts());
                         }
-                        this.saveData();
-                        this.$nextTick(() => {
-                            this.initCharts();
-                        });
                     }
                 },
                 resetForm() {
