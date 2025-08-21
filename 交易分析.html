@@ -288,12 +288,12 @@
             letter-spacing: 0.5px;
         }
         
-        .trade-type-add { 
+                .trade-type-add {
             background: linear-gradient(135deg, #3b82f6, #2563eb);
-            color: white; 
-            padding: 6px 12px; 
-            border-radius: 8px; 
-            font-size: 0.8rem; 
+            color: white;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.8rem;
             font-weight: 700;
             border: 2px solid rgba(59, 130, 246, 0.3);
             display: inline-flex;
@@ -304,6 +304,26 @@
             cursor: pointer;
             transition: all 0.3s ease;
             box-shadow: 0 2px 8px rgba(59, 130, 246, 0.25);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .trade-type-reduce {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            border: 2px solid rgba(245, 158, 11, 0.3);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            min-width: 60px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.25);
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
@@ -328,6 +348,13 @@
             transform: translateY(-1px);
             box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
             border-color: rgba(59, 130, 246, 0.6);
+        }
+        
+        .trade-type-reduce:hover {
+            background: linear-gradient(135deg, #d97706, #b45309);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+            border-color: rgba(245, 158, 11, 0.6);
         }
 
         /* 弹框中的交易类型按钮样式 */
@@ -362,6 +389,13 @@
             color: white;
             border-color: #3b82f6;
             box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+        }
+        
+        .dialog-trade-btn.active.reduce {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+            border-color: #f59e0b;
+            box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
         }
         /* 排行榜项目优化 */
         .ranking-item { 
@@ -1831,6 +1865,13 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
+        
+        .table-trade-type-reduce {
+            color: #f59e0b !important;
+            font-weight: 700 !important;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
 
         /* 弹框基础样式 */
         .custom-dialog .el-dialog {
@@ -2130,7 +2171,7 @@
                             </el-button>
                         </div>
                         <div style="color: var(--text-muted); font-size: 0.875rem;">
-                            共 {{ totalTrades }} 条交易记录
+                            共 {{ activeTrades.length }} 条交易记录
                         </div>
                     </div>
                     
@@ -2434,7 +2475,7 @@
                                 @click.prevent="newTrade.type = 'sell'" 
                                 :class="newTrade.type === 'sell' ? 'dialog-trade-btn active sell' : 'dialog-trade-btn sell'"
                                 style="flex: 1; padding: 18px 24px; border: none; border-radius: 12px; font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
-                                ▼ 卖出
+                                🧹 清仓
                             </button>
                             <button 
                                 type="button"
@@ -2442,6 +2483,13 @@
                                 :class="newTrade.type === 'add' ? 'dialog-trade-btn active add' : 'dialog-trade-btn add'"
                                 style="flex: 1; padding: 18px 24px; border: none; border-radius: 12px; font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
                                 + 加仓
+                            </button>
+                            <button 
+                                type="button"
+                                @click.prevent="newTrade.type = 'reduce'" 
+                                :class="newTrade.type === 'reduce' ? 'dialog-trade-btn active reduce' : 'dialog-trade-btn reduce'"
+                                style="flex: 1; padding: 18px 24px; border: none; border-radius: 12px; font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                                - 减仓
                             </button>
                         </div>
                     </div>
@@ -2632,28 +2680,29 @@
                     return Array.from(months).sort().reverse();
                 },
                 totalTrades() {
-                    // 计算完整交易次数：同一股票的买入+卖出才算一次完整交易
+                    // 计算完整交易次数：同一股票的买入+清仓才算一次完整交易
+                    // 加仓和减仓不计入交易次数，只是调整持仓量
                     const stockTrades = {};
                     this.activeTrades.forEach(trade => {
                         const stockKey = trade.stock || trade.stockName;
                         if (!stockTrades[stockKey]) {
-                            stockTrades[stockKey] = { buy: 0, sell: 0, add: 0 };
+                            stockTrades[stockKey] = { buy: 0, sell: 0 };
                         }
+                        // 只计算买入和清仓，加仓和减仓不计入交易次数
                         if (trade.type === 'buy') {
                             stockTrades[stockKey].buy++;
                         } else if (trade.type === 'sell') {
                             stockTrades[stockKey].sell++;
-                        } else if (trade.type === 'add') {
-                            stockTrades[stockKey].add++;
                         }
+                        // add 和 reduce 不计入交易次数统计
                     });
                     
-                    // 计算完整交易次数：每个股票的买入和卖出的最小值
+                    // 计算完整交易次数：每个股票的买入和清仓的最小值
                     let completeTrades = 0;
                     Object.values(stockTrades).forEach(stock => {
-                        // 买入（包括加仓）和卖出的最小值就是完整交易次数
-                        const totalBuy = stock.buy + stock.add;
-                        completeTrades += Math.min(totalBuy, stock.sell);
+                        // 只有完整的买入+清仓才算一次交易
+                        // 加仓和减仓不影响交易次数计算
+                        completeTrades += Math.min(stock.buy, stock.sell);
                     });
                     
                     return completeTrades;
@@ -2950,7 +2999,7 @@
                     return `¥${value.toFixed(2)}`;
                 },
                 getTradeTypeText(type) {
-                    const types = { buy: '买入', sell: '卖出', add: '加仓' };
+                    const types = { buy: '买入', sell: '清仓', add: '加仓', reduce: '减仓' };
                     return types[type] || type;
                 },
                 getTradeTypeClass(type) {
