@@ -2161,7 +2161,7 @@
                 <!-- 操作栏重新设计 -->
                 <div style="margin-bottom: 32px;">
                     <!-- 第一行：主要操作按钮 -->
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                         <div style="display: flex; gap: 16px; align-items: center;">
                             <el-button type="primary" @click="dialogVisible = true" size="large" style="border-radius: 12px; padding: 14px 28px; font-weight: 600; font-size: 1rem;">
                                 <i class="el-icon-plus" style="margin-right: 8px;"></i>添加交易记录
@@ -2169,7 +2169,7 @@
                             <el-button @click="exportData" size="large" style="border-radius: 12px; padding: 14px 24px; background: var(--surface-bg); border: 1px solid var(--border-color); color: var(--text-primary); font-weight: 600;">
                                 <i class="el-icon-download" style="margin-right: 8px;"></i>导出数据
                             </el-button>
-                        </div>
+                    </div>
                         <div style="color: var(--text-muted); font-size: 0.875rem;">
                             共 {{ activeTrades.length }} 条交易记录
                         </div>
@@ -2187,28 +2187,28 @@
                                 <div style="display: flex; flex-direction: column; gap: 8px; min-width: 160px;">
                                     <label style="color: var(--text-secondary); font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">📅 选择年份</label>
                                     <el-select v-model="selectedYear" @change="handleYearChange" style="width: 100%;" placeholder="选择年份">
-                                        <el-option label="全部年份" value="all"></el-option>
-                                        <el-option
-                                            v-for="year in availableYears"
-                                            :key="year"
+                            <el-option label="全部年份" value="all"></el-option>
+                            <el-option
+                                v-for="year in availableYears"
+                                :key="year"
                                             :label="year + '年'"
-                                            :value="year">
-                                        </el-option>
-                                    </el-select>
+                                :value="year">
+                            </el-option>
+                        </el-select>
                                 </div>
                                 
                                 <!-- 月份选择器 - 下拉框设计 -->
                                 <div style="display: flex; flex-direction: column; gap: 8px; min-width: 160px;">
                                     <label style="color: var(--text-secondary); font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">📅 选择月份</label>
                                     <el-select v-model="selectedMonth" @change="handleMonthChange" :disabled="selectedYear === 'all'" style="width: 100%;" placeholder="选择月份">
-                                        <el-option label="全部月份" value="all"></el-option>
-                                        <el-option
-                                            v-for="month in availableMonths"
-                                            :key="month"
-                                            :label="month + '月'"
-                                            :value="month">
-                                        </el-option>
-                                    </el-select>
+                            <el-option label="全部月份" value="all"></el-option>
+                            <el-option
+                                v-for="month in availableMonths"
+                                :key="month"
+                                :label="month + '月'"
+                                :value="month">
+                            </el-option>
+                        </el-select>
                                 </div>
                                 <div style="display: flex; align-items: center; gap: 12px; margin-left: auto;">
                                     <div style="text-align: center; padding: 8px 16px; background: var(--card-bg); border-radius: 8px; border: 1px solid var(--border-color);">
@@ -2233,8 +2233,8 @@
                                 <template #default="scope">
                                     <div style="display: flex; justify-content: center; align-items: center;">
                                         <span :class="'table-trade-type-' + scope.row.type" style="font-weight: 700; font-size: 0.85rem;">
-                                            {{ getTradeTypeText(scope.row.type) }}
-                                        </span>
+                                        {{ getTradeTypeText(scope.row.type) }}
+                                    </span>
                                     </div>
                                 </template>
                             </el-table-column>
@@ -2591,7 +2591,7 @@
                             <el-input v-model="newTrade.notes" type="textarea" :rows="2" placeholder="记录交易时的市场情况、个人判断或其他相关信息"></el-input>
                         </div>
                     </div>
-                </el-form>
+            </el-form>
             </div>
             <template #footer>
                 <span class="dialog-footer">
@@ -2711,13 +2711,16 @@
                     return this.activeTrades.reduce((sum, trade) => sum + trade.profit, 0);
                 },
                 winRate() {
-                    // 简单胜率计算：盈利交易数 / 总交易次数
-                    if (this.totalTrades === 0) {
+                    // 胜率计算：盈利交易数 / 有盈亏的交易总数
+                    const winTrades = this.activeTrades.filter(trade => trade.profit > 0).length;
+                    const lossTrades = this.activeTrades.filter(trade => trade.profit < 0).length;
+                    const totalProfitLossTrades = winTrades + lossTrades;
+                    
+                    if (totalProfitLossTrades === 0) {
                         return 0;
                     }
                     
-                    const winTrades = this.activeTrades.filter(trade => trade.profit > 0).length;
-                    return Math.round((winTrades / this.activeTrades.length) * 100);
+                    return Math.round((winTrades / totalProfitLossTrades) * 100);
                 },
                 avgProfit() {
                     return this.totalTrades > 0 ? this.totalProfit / this.totalTrades : 0;
