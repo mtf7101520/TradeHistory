@@ -854,6 +854,26 @@
                 bottom: 20px;
                 right: 20px;
             }
+
+            /* 分页器响应式 */
+            .el-pagination {
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .el-pagination .el-pagination__sizes,
+            .el-pagination .el-pagination__jump {
+                margin: 0;
+            }
+
+            /* 表格响应式 */
+            .el-table {
+                font-size: 0.8rem;
+            }
+
+            .el-table .el-table__cell {
+                padding: 8px 4px;
+            }
         }
 
         /* 加载动画 */
@@ -1007,19 +1027,121 @@
         /* 分页器样式 */
         .el-pagination {
             color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 8px;
         }
 
         .el-pagination .el-pager li {
             background: var(--surface-bg);
             color: var(--text-primary);
             border: 1px solid var(--border-color);
-            border-radius: 6px;
-            margin: 0 4px;
+            border-radius: 8px;
+            margin: 0 2px;
+            min-width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .el-pagination .el-pager li:hover {
+            background: var(--secondary-bg);
+            border-color: var(--accent-primary);
+            transform: translateY(-1px);
         }
 
         .el-pagination .el-pager li.active {
             background: var(--accent-primary);
             color: white;
+            border-color: var(--accent-primary);
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+        }
+
+        .el-pagination .el-pagination__sizes {
+            margin: 0 16px;
+        }
+
+        .el-pagination .el-pagination__sizes .el-select {
+            width: 100px;
+        }
+
+        .el-pagination .el-pagination__sizes .el-select .el-input__inner {
+            background: var(--surface-bg) !important;
+            border: 1px solid var(--border-color) !important;
+            color: var(--text-primary) !important;
+        }
+
+        .el-pagination .el-pagination__sizes .el-select .el-input__suffix {
+            color: var(--text-primary) !important;
+        }
+
+        /* 分页器总数显示样式 */
+        .el-pagination .el-pagination__total {
+            color: var(--text-primary) !important;
+            font-weight: 500;
+        }
+
+        /* 分页器所有按钮样式 */
+        .el-pagination .btn-next,
+        .el-pagination .btn-prev {
+            background: var(--surface-bg) !important;
+            border: 1px solid var(--border-color) !important;
+            color: var(--text-primary) !important;
+        }
+
+        .el-pagination .btn-next:hover,
+        .el-pagination .btn-prev:hover {
+            background: var(--secondary-bg) !important;
+            border-color: var(--accent-primary) !important;
+        }
+
+        .el-pagination .el-pagination__jump {
+            margin: 0 16px;
+            color: var(--text-primary) !important;
+        }
+
+        .el-pagination .el-pagination__jump .el-pagination__jump-text {
+            color: var(--text-primary) !important;
+            font-weight: 500;
+        }
+
+        .el-pagination .el-pagination__jump .el-input {
+            width: 60px;
+        }
+
+        .el-pagination .el-pagination__jump .el-input .el-input__wrapper {
+            background: var(--surface-bg) !important;
+            border: 1px solid var(--border-color) !important;
+            box-shadow: none !important;
+        }
+
+        .el-pagination .el-pagination__jump .el-input .el-input__wrapper:hover {
+            border-color: var(--accent-primary) !important;
+        }
+
+        .el-pagination .el-pagination__jump .el-input .el-input__wrapper.is-focus {
+            border-color: var(--accent-primary) !important;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2) !important;
+        }
+
+        .el-pagination .el-pagination__jump .el-input__inner {
+            border: none !important;
+            background: transparent !important;
+            color: var(--text-primary) !important;
+        }
+
+        .el-pagination .el-pagination__jump .el-input__inner:focus {
+            border: none !important;
+            background: transparent !important;
+            box-shadow: none !important;
+        }
+
+        .el-pagination .el-pagination__jump .el-input__inner::placeholder {
+            color: rgba(255, 255, 255, 0.6) !important;
         }
 
         /* 选择器下拉样式优化 */
@@ -2498,7 +2620,23 @@
                 </div>
                 <el-tabs v-model="activeTab" type="card">
                     <el-tab-pane label="交易记录" name="records">
-                        <el-table :data="paginatedTrades" stripe style="width: 100%">
+                        <!-- 分页信息栏 -->
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding: 12px 16px; background: var(--surface-bg); border-radius: 12px; border: 1px solid var(--border-color);">
+                            <div style="color: var(--text-secondary); font-size: 0.875rem;">
+                                📊 显示第 {{ (currentPage - 1) * pageSize + 1 }} - {{ Math.min(currentPage * pageSize, activeTrades.length) }} 条，共 {{ activeTrades.length }} 条记录
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <span style="color: var(--text-secondary); font-size: 0.875rem;">每页显示：</span>
+                                <el-select v-model="pageSize" @change="handleSizeChange" style="width: 80px;" size="small">
+                                    <el-option label="10" :value="10"></el-option>
+                                    <el-option label="20" :value="20"></el-option>
+                                    <el-option label="50" :value="50"></el-option>
+                                    <el-option label="100" :value="100"></el-option>
+                                </el-select>
+                            </div>
+                        </div>
+                        
+                        <el-table :data="paginatedTrades" stripe style="width: 100%;" :max-height="600" table-layout="fixed">
                             <el-table-column prop="date" label="日期" width="140" :show-overflow-tooltip="false"></el-table-column>
                             <el-table-column prop="stock" label="股票代码" width="100"></el-table-column>
                             <el-table-column prop="stockName" label="股票名称" width="120"></el-table-column>
@@ -2537,12 +2675,25 @@
                         
                         <el-pagination
                             @current-change="handleCurrentChange"
+                            @size-change="handleSizeChange"
                             :current-page="currentPage"
                             :page-size="pageSize"
-                            layout="total, prev, pager, next"
-                            :total="trades.length"
+                            :page-sizes="[10, 20, 50, 100]"
+                            layout="total, sizes, prev, pager, next, jumper"
+                            :total="activeTrades.length"
+                            :pager-count="7"
                             style="margin-top: 20px; text-align: center;">
                         </el-pagination>
+                        
+                        <!-- 快速导航按钮 -->
+                        <div style="display: flex; justify-content: center; gap: 12px; margin-top: 16px;">
+                            <el-button size="small" @click="goToFirstPage" :disabled="currentPage === 1">
+                                ⏮️ 首页
+                            </el-button>
+                            <el-button size="small" @click="goToLastPage" :disabled="currentPage === totalPages">
+                                ⏭️ 末页
+                            </el-button>
+                        </div>
                     </el-tab-pane>
 
                     <el-tab-pane label="收益排行榜" name="ranking">
@@ -2898,7 +3049,7 @@
                     editingIndex: -1,
                     editingTrade: null, // To store the original trade object during editing
                     currentPage: 1,
-                    pageSize: 10,
+                    pageSize: 20,
                     selectedYear: 'all',
                     selectedMonth: 'all',
                     initialCapital: 500000, // 默认50万本金
@@ -3095,6 +3246,9 @@
                     const start = (this.currentPage - 1) * this.pageSize;
                     const end = start + this.pageSize;
                     return this.activeTrades.slice(start, end);
+                },
+                totalPages() {
+                    return Math.ceil(this.activeTrades.length / this.pageSize);
                 },
                 profitRanking() {
                     const stockProfits = {};
@@ -3428,6 +3582,16 @@
                 },
                 handleCurrentChange(page) {
                     this.currentPage = page;
+                },
+                handleSizeChange(size) {
+                    this.pageSize = size;
+                    this.currentPage = 1; // 重置到第一页
+                },
+                goToFirstPage() {
+                    this.currentPage = 1;
+                },
+                goToLastPage() {
+                    this.currentPage = this.totalPages;
                 },
                 handleYearChange() {
                     this.selectedMonth = 'all'; // Reset month when year changes
