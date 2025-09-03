@@ -2514,7 +2514,7 @@
                             <el-table-column prop="quantity" label="数量" width="100"></el-table-column>
                             <el-table-column prop="price" label="价格" width="100">
                                 <template #default="scope">
-                                    {{ formatCurrency(scope.row.price) }}
+                                    {{ formatPrice(scope.row.price) }}
                                 </template>
                             </el-table-column>
                             <el-table-column prop="profit" label="盈亏" width="120">
@@ -2657,7 +2657,7 @@
                                     <div style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 4px;">
                                         <strong>📈 交易详情:</strong> 
                                         <span :class="getTradeTypeClass(trade.type)" style="margin-left: 8px;">{{ getTradeTypeText(trade.type) }}</span>
-                                        {{ trade.quantity }}股 @ {{ formatCurrency(trade.price) }}
+                                        {{ trade.quantity }}股 @ {{ formatPrice(trade.price) }}
                                     </div>
                                 </div>
                                 <div class="mistake-reason" style="background: rgba(239, 68, 68, 0.1); border-radius: 8px; padding: 12px; border-left: 3px solid var(--danger);">
@@ -2814,16 +2814,16 @@
                                 <label class="form-label">💵 交易价格</label>
                                 <el-input-number 
                                     v-model="newTrade.price" 
-                                    :precision="2" 
+                                    :precision="3" 
                                     :min="0" 
                                     :max="9999" 
-                                    :step="0.01" 
+                                    :step="0.001" 
                                     style="width: 100%;" 
                                     placeholder="元/股" 
                                     :controls="true"
                                     :validate-event="false">
                                 </el-input-number>
-                                <p style="margin: 8px 0 0 0; color: var(--text-muted); font-size: 0.75rem;">💡 精确到分</p>
+                                <p style="margin: 8px 0 0 0; color: var(--text-muted); font-size: 0.75rem;">💡 精确到厘，支持0.396等精确价格</p>
                             </div>
                         </div>
                         <!-- 第二行：盈亏金额（单独一行，更宽敞） -->
@@ -3405,7 +3405,13 @@
                     });
                 },
                 formatCurrency(value) {
-                    return `¥${value.toFixed(2)}`;
+                    // 对于价格，显示3位小数；对于其他金额，显示2位小数
+                    const decimalPlaces = value < 1 ? 3 : 2;
+                    return `¥${value.toFixed(decimalPlaces)}`;
+                },
+                formatPrice(value) {
+                    // 专门用于格式化价格，始终显示3位小数
+                    return `¥${value.toFixed(3)}`;
                 },
                 getTradeTypeText(type) {
                     const types = { buy: '买入', sell: '清仓', add: '加仓', reduce: '减仓' };
