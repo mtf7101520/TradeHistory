@@ -45,12 +45,13 @@
             color: var(--text-primary);
             line-height: 1.6;
             overflow-x: hidden;
+            font-size: 15px;
         }
         /* 主容器布局优化 */
         .main-container { 
             min-height: 100vh; 
             padding: 24px;
-            max-width: 1400px;
+            max-width: 1280px;
             margin: 0 auto;
             position: relative;
         }
@@ -125,9 +126,13 @@
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .stat-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 25px 50px -12px var(--shadow-medium);
+        .stat-card, .chart-container, .data-table, .ranking-container, .mistake-book, .header, .el-button, .el-input__inner {
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover, .chart-container:hover, .data-table:hover, .ranking-container:hover, .mistake-book:hover, .header:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 25px 50px -12px var(--shadow-heavy);
         }
 
         .stat-card::before {
@@ -2711,21 +2716,6 @@
                 </div>
                 <el-tabs v-model="activeTab" type="card">
                     <el-tab-pane label="交易记录" name="records">
-                        <!-- 分页信息栏 -->
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding: 12px 16px; background: var(--surface-bg); border-radius: 12px; border: 1px solid var(--border-color);">
-                            <div style="color: var(--text-secondary); font-size: 0.875rem;">
-                                📊 显示第 {{ (currentPage - 1) * pageSize + 1 }} - {{ Math.min(currentPage * pageSize, activeTrades.length) }} 条，共 {{ activeTrades.length }} 条记录
-                            </div>
-                            <div style="display: flex; align-items: center; gap: 12px;">
-                                <span style="color: var(--text-secondary); font-size: 0.875rem;">每页显示：</span>
-                                <el-select v-model="pageSize" @change="handleSizeChange" style="width: 80px;" size="small">
-                                    <el-option label="10" :value="10"></el-option>
-                                    <el-option label="20" :value="20"></el-option>
-                                    <el-option label="50" :value="50"></el-option>
-                                    <el-option label="100" :value="100"></el-option>
-                                </el-select>
-                            </div>
-                        </div>
                         <el-table :data="paginatedTrades" stripe style="width: 100%;" table-layout="fixed">
                             <el-table-column prop="date" label="日期" width="140" :show-overflow-tooltip="false"></el-table-column>
                             <el-table-column prop="stock" label="股票代码" width="100"></el-table-column>
@@ -2768,7 +2758,7 @@
                             @size-change="handleSizeChange"
                             :current-page="currentPage"
                             :page-size="pageSize"
-                            :page-sizes="[10, 20, 50, 100]"
+                            :page-sizes="[10, 20, 50, 60, 100]"
                             layout="total, sizes, prev, pager, next, jumper"
                             :total="activeTrades.length"
                             :pager-count="7"
