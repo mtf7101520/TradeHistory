@@ -1069,14 +1069,100 @@
             width: 100px;
         }
 
-        .el-pagination .el-pagination__sizes .el-select .el-input__inner {
+        .el-pagination .el-pagination__sizes .el-select .el-input__wrapper {
             background: var(--surface-bg) !important;
             border: 1px solid var(--border-color) !important;
+            box-shadow: none !important;
+        }
+
+        .el-pagination .el-pagination__sizes .el-select .el-input__inner {
+            background: transparent !important;
+            border: none !important;
+            color: var(--text-primary) !important;
+            font-weight: 500;
+        }
+
+        .el-pagination .el-pagination__sizes .el-select .el-input__inner::placeholder {
+            color: var(--text-primary) !important;
+        }
+
+        .el-pagination .el-pagination__sizes .el-select .el-input__inner:focus {
             color: var(--text-primary) !important;
         }
 
         .el-pagination .el-pagination__sizes .el-select .el-input__suffix {
             color: var(--text-primary) !important;
+        }
+
+        /* 强制显示选中值 */
+        .el-pagination .el-pagination__sizes .el-select .el-input__wrapper .el-input__inner {
+            color: var(--text-primary) !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+        }
+
+        .el-pagination .el-pagination__sizes .el-select .el-input__wrapper .el-input__inner[readonly] {
+            color: var(--text-primary) !important;
+        }
+
+        /* 确保所有状态下的文字都可见 */
+        .el-pagination .el-pagination__sizes .el-select .el-input__wrapper .el-input__inner,
+        .el-pagination .el-pagination__sizes .el-select .el-input__wrapper .el-input__inner:focus,
+        .el-pagination .el-pagination__sizes .el-select .el-input__wrapper .el-input__inner:hover {
+            color: var(--text-primary) !important;
+            background: transparent !important;
+        }
+
+        /* 分页器下拉框专用样式 */
+        .pagination-popper .el-select-dropdown__item {
+            color: var(--text-primary) !important;
+            background: transparent !important;
+            padding: 8px 16px !important;
+        }
+
+        .pagination-popper .el-select-dropdown__item:hover {
+            background: var(--surface-bg) !important;
+        }
+
+        .pagination-popper .el-select-dropdown__item.selected {
+            background: var(--accent-primary) !important;
+            color: white !important;
+            font-weight: 600 !important;
+        }
+
+        /* 强制显示选中值 - 更具体的选择器 */
+        .el-pagination .el-pagination__sizes .el-select .el-input__wrapper .el-input__inner {
+            color: var(--text-primary) !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+            font-weight: 500 !important;
+        }
+
+        /* 确保选中值在输入框中显示 */
+        .el-pagination .el-pagination__sizes .el-select .el-input__wrapper .el-input__inner[value] {
+            color: var(--text-primary) !important;
+        }
+
+        /* 最高优先级 - 强制显示选中值 */
+        .el-pagination .el-pagination__sizes .el-select .el-input__wrapper .el-input__inner {
+            color: var(--text-primary) !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+            display: block !important;
+        }
+
+        /* 针对Element Plus的特定类名 */
+        .el-pagination .el-pagination__sizes .el-select .el-input__wrapper .el-input__inner.el-input__inner {
+            color: var(--text-primary) !important;
+        }
+
+        .el-pagination .el-pagination__sizes .el-select .el-input__wrapper:hover {
+            border-color: var(--accent-primary) !important;
+        }
+
+        .el-pagination .el-pagination__sizes .el-select .el-input__wrapper.is-focus {
+            border-color: var(--accent-primary) !important;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2) !important;
         }
 
         /* 分页器总数显示样式 */
@@ -2682,6 +2768,7 @@
                             layout="total, sizes, prev, pager, next, jumper"
                             :total="activeTrades.length"
                             :pager-count="7"
+                            popper-class="pagination-popper"
                             style="margin-top: 20px; text-align: center;">
                         </el-pagination>
                         
@@ -3586,6 +3673,12 @@
                 handleSizeChange(size) {
                     this.pageSize = size;
                     this.currentPage = 1; // 重置到第一页
+                    
+                    // 强制更新分页器显示
+                    this.$nextTick(() => {
+                        // 确保分页器重新渲染
+                        this.$forceUpdate();
+                    });
                 },
                 goToFirstPage() {
                     this.currentPage = 1;
