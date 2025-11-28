@@ -188,6 +188,7 @@
         }
         /* 数据表格容器优化 */
         .data-table { 
+            padding-bottom: 120px;
             background: var(--card-bg);
             border-radius: 20px; 
             padding: 32px; 
@@ -2725,8 +2726,7 @@
                                 </el-select>
                             </div>
                         </div>
-                        
-                        <el-table :data="paginatedTrades" stripe style="width: 100%;" :max-height="600" table-layout="fixed">
+                        <el-table :data="paginatedTrades" stripe style="width: 100%;" table-layout="fixed">
                             <el-table-column prop="date" label="日期" width="140" :show-overflow-tooltip="false"></el-table-column>
                             <el-table-column prop="stock" label="股票代码" width="100"></el-table-column>
                             <el-table-column prop="stockName" label="股票名称" width="120"></el-table-column>
