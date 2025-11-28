@@ -2650,6 +2650,10 @@
                             <el-button @click="exportData" size="large" style="border-radius: 12px; padding: 14px 24px; background: var(--surface-bg); border: 1px solid var(--border-color); color: var(--text-primary); font-weight: 600;">
                                 <i class="el-icon-download" style="margin-right: 8px;"></i>导出数据
                             </el-button>
+                            <el-button @click="triggerImport" size="large" style="border-radius: 12px; padding: 14px 24px; background: var(--surface-bg); border: 1px solid var(--border-color); color: var(--text-primary); font-weight: 600;">
+                                <i class="el-icon-upload2" style="margin-right: 8px;"></i>导入数据
+                            </el-button>
+                            <input ref="importInput" type="file" accept="application/json" style="display: none;" @change="handleImportFile">
                     </div>
                         <div style="color: var(--text-muted); font-size: 0.875rem;">
                             共 {{ activeTrades.length }} 条交易记录
@@ -3795,6 +3799,108 @@
                     a.download = `trading_records_${new Date().toISOString().split('T')[0]}.json`;
                     a.click();
                     URL.revokeObjectURL(url);
+                },
+                triggerImport() {
+                    const input = this.$refs.importInput;
+                    if (input) {
+                        input.click();
+                    }
+                },
+                handleImportFile(event) {
+                    const file = event.target.files && event.target.files[0];
+                    if (!file) {
+                        return;
+                    }
+
+                    if (file.type && file.type !== 'application/json') {
+                        alert('请选择JSON格式的导出文件');
+                        event.target.value = '';
+                        return;
+                    }
+
+                    if (!confirm('导入数据将覆盖当前记录，是否继续？')) {
+                        event.target.value = '';
+                        return;
+                    }
+
+                    const reader = new FileReader();
+                    reader.onload = () => {
+                        try {
+                            const parsed = JSON.parse(reader.result);
+                            const normalized = this.normalizeImportedData(parsed);
+                            this.trades = normalized;
+                            this.selectedYear = 'all';
+                            this.selectedMonth = 'all';
+                            this.currentPage = 1;
+                            this.saveData();
+                            this.$nextTick(() => this.initCharts());
+                            
+                            const totalRecords = Object.values(normalized).reduce((sum, monthTrades) => sum + monthTrades.length, 0);
+                            alert(`导入成功，共 ${totalRecords} 条交易记录`);
+                        } catch (error) {
+                            console.error(error);
+                            alert(`导入失败：${error.message}`);
+                        } finally {
+                            event.target.value = '';
+                        }
+                    };
+                    reader.onerror = () => {
+                        alert('读取文件失败，请重试');
+                        event.target.value = '';
+                    };
+                    reader.readAsText(file, 'utf-8');
+                },
+                normalizeImportedData(data) {
+                    if (!data) {
+                        throw new Error('文件内容为空');
+                    }
+
+                    let normalized = {};
+
+                    if (Array.isArray(data)) {
+                        normalized = data.reduce((acc, trade) => {
+                            const normalizedTrade = this.normalizeTrade(trade);
+                            const month = normalizedTrade.date.substring(0, 7);
+                            if (!acc[month]) {
+                                acc[month] = [];
+                            }
+                            acc[month].push(normalizedTrade);
+                            return acc;
+                        }, {});
+                    } else if (typeof data === 'object' && data !== null) {
+                        Object.keys(data).forEach(month => {
+                            const monthTrades = data[month];
+                            if (!Array.isArray(monthTrades)) {
+                                throw new Error(`月份 ${month} 的数据格式不正确`);
+                            }
+                            normalized[month] = monthTrades.map(trade => this.normalizeTrade(trade));
+                        });
+                    } else {
+                        throw new Error('不支持的数据格式');
+                    }
+
+                    if (Object.keys(normalized).length === 0) {
+                        throw new Error('未找到有效的交易记录');
+                    }
+
+                    return normalized;
+                },
+                normalizeTrade(trade) {
+                    if (!trade || !trade.date) {
+                        throw new Error('存在缺少日期的交易记录');
+                    }
+
+                    return {
+                        date: trade.date,
+                        stock: trade.stock || '',
+                        stockName: trade.stockName || '',
+                        type: trade.type || 'buy',
+                        quantity: Number(trade.quantity) || 0,
+                        price: Number(trade.price) || 0,
+                        profit: Number(trade.profit) || 0,
+                        notes: trade.notes || '',
+                        failureReason: trade.failureReason || ''
+                    };
                 }
             }
         }).use(ElementPlus).mount('#app');
