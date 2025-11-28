@@ -46,6 +46,7 @@
             line-height: 1.6;
             overflow-x: hidden;
             font-size: 15px;
+            zoom: 0.8;
         }
         /* 主容器布局优化 */
         .main-container { 
@@ -2759,7 +2760,7 @@
                             :current-page="currentPage"
                             :page-size="pageSize"
                             :page-sizes="[10, 20, 50, 60, 100]"
-                            layout="total, sizes, prev, pager, next, jumper"
+                            layout="sizes, prev, pager, next, jumper, total"
                             :total="activeTrades.length"
                             :pager-count="7"
                             popper-class="pagination-popper"
