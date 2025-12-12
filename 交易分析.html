@@ -3698,10 +3698,19 @@
                 loadData() {
                     const data = localStorage.getItem('trading_records_archive');
                     if (data) {
-                        this.trades = JSON.parse(data);
+                        const trades = JSON.parse(data);
+                        // Ensure all trades have a unique ID
+                        Object.keys(trades).forEach(month => {
+                            trades[month].forEach(trade => {
+                                if (!trade.id) {
+                                    trade.id = Date.now().toString() + Math.random(); // Simple unique ID
+                                }
+                            });
+                        });
+                        this.trades = trades;
                         return;
                     }
-                    
+
                     // Migration logic for old data format
                     const oldData = localStorage.getItem('trading_records');
                     if (oldData) {
@@ -3711,6 +3720,9 @@
                                 const month = trade.date.substring(0, 7); // YYYY-MM
                                 if (!acc[month]) {
                                     acc[month] = [];
+                                }
+                                if (!trade.id) {
+                                    trade.id = Date.now().toString() + Math.random(); // Simple unique ID
                                 }
                                 acc[month].push(trade);
                                 return acc;
@@ -3722,16 +3734,21 @@
                 },
                 saveTrade() {
                     const trade = { ...this.newTrade };
+                    if (!trade.id) {
+                        trade.id = Date.now().toString(); // Assign a unique ID
+                    }
                     const month = trade.date.substring(0, 7);
 
                     if (this.isEditing) {
-                        // Find and remove the old trade record before adding the updated one
+                        // Find and remove the old trade record using the unique ID
                         const oldMonth = this.editingTrade.date.substring(0, 7);
-                        const oldIndex = this.trades[oldMonth].findIndex(t => t.date === this.editingTrade.date && t.stock === this.editingTrade.stock);
-                        if (oldIndex > -1) {
-                            this.trades[oldMonth].splice(oldIndex, 1);
-                            if (this.trades[oldMonth].length === 0) {
-                                delete this.trades[oldMonth];
+                        if (this.trades[oldMonth]) {
+                            const oldIndex = this.trades[oldMonth].findIndex(t => t.id === this.editingTrade.id);
+                            if (oldIndex > -1) {
+                                this.trades[oldMonth].splice(oldIndex, 1);
+                                if (this.trades[oldMonth].length === 0) {
+                                    delete this.trades[oldMonth];
+                                }
                             }
                         }
                     }
@@ -3755,7 +3772,7 @@
                 deleteTrade(trade) {
                     const month = trade.date.substring(0, 7);
                     if (this.trades[month]) {
-                        const index = this.trades[month].findIndex(t => t === trade);
+                        const index = this.trades[month].findIndex(t => t.id === trade.id);
                         if (index > -1) {
                             this.trades[month].splice(index, 1);
                             if (this.trades[month].length === 0) {
@@ -3882,6 +3899,7 @@
                     }
 
                     return {
+                        id: trade.id || Date.now().toString() + Math.random(), // Ensure unique ID
                         date: trade.date,
                         stock: trade.stock || '',
                         stockName: trade.stockName || '',
