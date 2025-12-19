@@ -11,27 +11,26 @@
     <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css">
     <style>
         :root {
-            /* 现代化深色主题色彩系统 */
-            --primary-bg: #0f172a;
-            --secondary-bg: #1e293b;
-            --card-bg: #334155;
-            --surface-bg: #475569;
-            --accent-primary: #3b82f6;
-            --accent-secondary: #8b5cf6;
+            /* 现代化深色主题色彩系统 - 升级版 (Glassmorphism) */
+            --primary-bg: #0b1121;
+            --secondary-bg: #151e32;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --surface-bg: rgba(51, 65, 85, 0.5);
+            --accent-primary: #6366f1;
+            --accent-secondary: #ec4899;
             --success: #10b981;
-            --danger: #ef4444;
+            --danger: #f43f5e;
             --warning: #f59e0b;
-            --text-primary: #f8fafc;
-            --text-secondary: #cbd5e1;
-            --text-muted: #94a3b8;
-            --border-color: #475569;
-            --shadow-light: rgba(0, 0, 0, 0.1);
-            --shadow-medium: rgba(0, 0, 0, 0.25);
-            --shadow-heavy: rgba(0, 0, 0, 0.5);
-            --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --gradient-success: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            --gradient-danger: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-            --gradient-card: linear-gradient(145deg, #334155 0%, #475569 100%);
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --border-color: rgba(148, 163, 184, 0.1);
+            --shadow-light: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-medium: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --shadow-heavy: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
+            --gradient-primary: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            --gradient-card: linear-gradient(145deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.6) 100%);
+            --glass-border: 1px solid rgba(255, 255, 255, 0.08);
         }
 
         * {
@@ -87,13 +86,16 @@
         }
 
         /* 头部优化 */
+        /* 头部优化 */
         .header {
-            background: var(--card-bg);
-            border-radius: 20px;
-            padding: 32px;
-            margin-bottom: 32px;
-            border: 1px solid var(--border-color);
-            box-shadow: 0 20px 25px -5px var(--shadow-light), 0 10px 10px -5px var(--shadow-light);
+            background: rgba(30, 41, 59, 0.5);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 24px;
+            padding: 40px;
+            margin-bottom: 40px;
+            border: var(--glass-border);
+            box-shadow: var(--shadow-medium);
             position: relative;
             overflow: hidden;
         }
@@ -133,12 +135,14 @@
         }
 
         .stat-card {
-            background: var(--gradient-card);
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
             color: var(--text-primary);
             padding: 32px;
             border-radius: 20px;
-            border: 1px solid var(--border-color);
-            box-shadow: 0 20px 25px -5px var(--shadow-light), 0 10px 10px -5px var(--shadow-light);
+            border: var(--glass-border);
+            box-shadow: var(--shadow-medium);
             position: relative;
             overflow: hidden;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -200,12 +204,14 @@
 
         /* 图表容器优化 */
         .chart-container {
-            background: var(--card-bg);
+            background: rgba(30, 41, 59, 0.5);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
             border-radius: 20px;
             padding: 32px;
             margin-bottom: 32px;
-            border: 1px solid var(--border-color);
-            box-shadow: 0 20px 25px -5px var(--shadow-light), 0 10px 10px -5px var(--shadow-light);
+            border: var(--glass-border);
+            box-shadow: var(--shadow-medium);
         }
 
         .chart-container h3 {
@@ -226,32 +232,38 @@
         /* 数据表格容器优化 */
         .data-table {
             padding-bottom: 120px;
-            background: var(--card-bg);
+            background: rgba(30, 41, 59, 0.5);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
             border-radius: 20px;
             padding: 32px;
-            border: 1px solid var(--border-color);
-            box-shadow: 0 20px 25px -5px var(--shadow-light), 0 10px 10px -5px var(--shadow-light);
+            border: var(--glass-border);
+            box-shadow: var(--shadow-medium);
             margin-bottom: 32px;
         }
 
         /* 排行榜容器 */
         .ranking-container {
-            background: var(--card-bg);
+            background: rgba(30, 41, 59, 0.5);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
             border-radius: 20px;
             padding: 32px;
             margin-bottom: 32px;
-            border: 1px solid var(--border-color);
-            box-shadow: 0 20px 25px -5px var(--shadow-light), 0 10px 10px -5px var(--shadow-light);
+            border: var(--glass-border);
+            box-shadow: var(--shadow-medium);
         }
 
         /* 错题集容器 */
         .mistake-book {
-            background: var(--card-bg);
+            background: rgba(30, 41, 59, 0.5);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
             border-radius: 20px;
             padding: 32px;
             margin-bottom: 32px;
-            border: 1px solid var(--border-color);
-            box-shadow: 0 20px 25px -5px var(--shadow-light), 0 10px 10px -5px var(--shadow-light);
+            border: var(--glass-border);
+            box-shadow: var(--shadow-medium);
         }
 
         /* 浮动按钮优化 */
@@ -259,7 +271,8 @@
             position: fixed;
             bottom: 32px;
             right: 32px;
-            z-index: 1000;
+            z-index: 99999;
+            /* Ensure visible above everything */
         }
 
         .add-record-btn .el-button {
@@ -2666,6 +2679,26 @@
                         </span>
                     </div>
                 </div>
+                <!-- 新增量化指标 -->
+                <div class="stat-card">
+                    <h3>🚀 获利因子 (Profit Factor)</h3>
+                    <div class="stat-value"
+                        :class="profitFactor >= 2.0 ? 'profit' : profitFactor >= 1.5 ? 'warning' : 'loss'">
+                        {{ profitFactor.toFixed(2) }}
+                    </div>
+                    <div class="stat-change">
+                        <span style="color: var(--text-muted);">总盈利 ÷ 总亏损 (>1.5合格)</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <h3>🛑 最大连续亏损</h3>
+                    <div class="stat-value" :class="maxConsecutiveLoss > 3 ? 'loss' : 'warning'">
+                        {{ maxConsecutiveLoss }}笔
+                    </div>
+                    <div class="stat-change">
+                        <span style="color: var(--text-muted);">心态控制预警</span>
+                    </div>
+                </div>
             </div>
 
             <!-- 图表区域 -->
@@ -2691,6 +2724,14 @@
                     style="height: 450px; border-radius: 12px; background: var(--surface-bg); padding: 16px;"></div>
             </div>
 
+            <!-- 热力图区域 -->
+            <div class="chart-container" style="margin-top: 32px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                    <h3>📅 月度盈亏热力图</h3>
+                </div>
+                <div id="calendarChart" style="width: 100%; height: 350px;"></div>
+            </div>
+
             <!-- 标签页导航 -->
             <div class="data-table">
                 <!-- 操作栏重新设计 -->
@@ -2698,7 +2739,7 @@
                     <!-- 第一行：主要操作按钮 -->
                     <div
                         style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                        <div style="display: flex; gap: 16px; align-items: center;">
+                        <div style="display: flex; gap: 16px; align-items: center; position: relative; z-index: 10;">
                             <el-button type="primary" @click="dialogVisible = true" size="large"
                                 style="border-radius: 12px; padding: 14px 28px; font-weight: 600; font-size: 1rem;">
                                 <i class="el-icon-plus" style="margin-right: 8px;"></i>添加交易记录
@@ -3468,6 +3509,29 @@
                         .filter(trade => trade.profit < 0)
                         .sort((a, b) => new Date(b.date) - new Date(a.date));
                 },
+                // Quant Metrics
+                profitFactor() {
+                    const grossProfit = this.activeTrades.filter(t => t.profit > 0).reduce((sum, t) => sum + t.profit, 0);
+                    const grossLoss = Math.abs(this.activeTrades.filter(t => t.profit < 0).reduce((sum, t) => sum + t.profit, 0));
+                    return grossLoss === 0 ? (grossProfit > 0 ? 999 : 0) : (grossProfit / grossLoss);
+                },
+                maxConsecutiveLoss() {
+                    let maxStreak = 0;
+                    let currentStreak = 0;
+                    // Sort by date ascending to calculate streaks correctly
+                    const sortedTrades = [...this.activeTrades].sort((a, b) => new Date(a.date) - new Date(b.date));
+
+                    sortedTrades.forEach(trade => {
+                        if (trade.profit < 0) {
+                            currentStreak++;
+                            maxStreak = Math.max(maxStreak, currentStreak);
+                        } else if (trade.profit > 0) {
+                            currentStreak = 0;
+                        }
+                        // Ignore break-even trades for streaks
+                    });
+                    return maxStreak;
+                },
                 failureReasons() {
                     const reasons = {};
                     this.failedTrades.forEach(trade => {
@@ -3657,6 +3721,101 @@
                     window.addEventListener('resize', () => {
                         myChart.resize();
                     });
+
+                    // 初始化日历热力图
+                    this.$nextTick(() => {
+                        this.initCalendarChart(dailyData);
+                    });
+                },
+                initCalendarChart(dailyData) {
+                    const chartDom = document.getElementById('calendarChart');
+                    if (!chartDom) return;
+
+                    // 销毁旧实例以防止警告
+                    const existingInstance = echarts.getInstanceByDom(chartDom);
+                    if (existingInstance) {
+                        existingInstance.dispose();
+                    }
+
+                    const myChart = echarts.init(chartDom, 'dark');
+
+                    // 获取当前年份范围
+                    const currentYear = this.selectedYear === 'all' ? new Date().getFullYear() : parseInt(this.selectedYear);
+
+                    // 格式化数据为 [date, profit] 数组
+                    const calendarData = Object.entries(dailyData).map(([date, profit]) => {
+                        return [date, profit];
+                    });
+
+                    // 计算最大最小值以设置颜色范围
+                    const profits = Object.values(dailyData);
+                    let maxProfit = 0;
+                    let maxLoss = 0;
+
+                    if (profits.length > 0) {
+                        maxProfit = Math.max(...profits);
+                        maxLoss = Math.min(...profits);
+                        // 确保最大值最小值是对称的或者合理的，避免颜色偏移太大
+                        const limit = Math.max(Math.abs(maxProfit), Math.abs(maxLoss));
+                        maxProfit = limit;
+                        maxLoss = -limit;
+                    }
+
+                    const option = {
+                        backgroundColor: 'transparent',
+                        tooltip: {
+                            formatter: function (params) {
+                                return `
+                                    <div style="padding: 8px;">
+                                        <div style="font-weight: 600; margin-bottom: 4px;">📅 ${params.value[0]}</div>
+                                        <div>💰 盈亏: <span style="color: ${params.value[1] >= 0 ? '#10b981' : '#ef4444'}; font-weight: 600;">${params.value[1].toFixed(2)}</span></div>
+                                    </div>
+                                `;
+                            },
+                            backgroundColor: 'rgba(30, 41, 59, 0.95)',
+                            borderColor: '#475569',
+                            textStyle: { color: '#f8fafc' }
+                        },
+                        visualMap: {
+                            min: maxLoss,
+                            max: maxProfit,
+                            calculable: true,
+                            orient: 'horizontal',
+                            left: 'center',
+                            bottom: 0,
+                            inRange: {
+                                color: ['#ef4444', '#1e293b', '#10b981'] // 红 -> 深蓝(中性) -> 绿
+                            },
+                            textStyle: { color: '#cbd5e1' }
+                        },
+                        calendar: {
+                            top: 40,
+                            left: 30,
+                            right: 30,
+                            cellSize: ['auto', 25],
+                            range: currentYear,
+                            itemStyle: {
+                                borderWidth: 1,
+                                borderColor: '#1e293b',
+                                color: '#0f172a'
+                            },
+                            yearLabel: { show: true, color: '#cbd5e1', fontSize: 14, margin: 40 },
+                            dayLabel: { color: '#94a3b8', firstDay: 1, nameMap: 'cn' },
+                            monthLabel: { color: '#94a3b8', nameMap: 'cn' },
+                            splitLine: { show: false }
+                        },
+                        series: {
+                            type: 'heatmap',
+                            coordinateSystem: 'calendar',
+                            data: calendarData,
+                            itemStyle: {
+                                borderRadius: 4
+                            }
+                        }
+                    };
+
+                    myChart.setOption(option);
+                    window.addEventListener('resize', () => myChart.resize());
                 },
                 initFailureReasonChart() {
                     const chartDom = document.getElementById('failureReasonChart');
