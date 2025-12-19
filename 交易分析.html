@@ -3543,13 +3543,26 @@
 
                     let cumulativeProfit = 0;
                     const sortedTrades = [...this.activeTrades].sort((a, b) => new Date(a.date) - new Date(b.date));
-                    const data = sortedTrades.map((trade, index) => {
-                        cumulativeProfit += trade.profit;
+
+                    // 按日期聚合数据
+                    const dailyData = {};
+                    sortedTrades.forEach(trade => {
+                        const date = trade.date;
+                        if (!dailyData[date]) {
+                            dailyData[date] = 0;
+                        }
+                        dailyData[date] += trade.profit;
+                    });
+
+                    // 转换为图表数据格式，并过滤掉无盈亏的日子（如果需要）
+                    const data = Object.keys(dailyData).map(date => {
+                        const dayProfit = dailyData[date];
+                        cumulativeProfit += dayProfit;
                         return {
-                            date: trade.date,
+                            date: date,
                             profit: cumulativeProfit,
-                            dailyProfit: trade.profit,
-                            isProfit: trade.profit >= 0
+                            dailyProfit: dayProfit,
+                            isProfit: dayProfit >= 0
                         };
                     });
 
@@ -3865,18 +3878,36 @@
                     this.dialogVisible = true;
                 },
                 deleteTrade(trade) {
-                    const month = trade.date.substring(0, 7);
-                    if (this.trades[month]) {
-                        const index = this.trades[month].findIndex(t => t.id === trade.id);
-                        if (index > -1) {
-                            this.trades[month].splice(index, 1);
-                            if (this.trades[month].length === 0) {
-                                delete this.trades[month];
-                            }
-                            this.saveData();
-                            this.$nextTick(() => this.initCharts());
+                    ElementPlus.ElMessageBox.confirm(
+                        '确定要删除这条交易记录吗？此操作不可恢复。',
+                        '删除确认',
+                        {
+                            confirmButtonText: '确定删除',
+                            cancelButtonText: '取消',
+                            type: 'warning',
                         }
-                    }
+                    )
+                        .then(() => {
+                            const month = trade.date.substring(0, 7);
+                            if (this.trades[month]) {
+                                const index = this.trades[month].findIndex(t => t.id === trade.id);
+                                if (index > -1) {
+                                    this.trades[month].splice(index, 1);
+                                    if (this.trades[month].length === 0) {
+                                        delete this.trades[month];
+                                    }
+                                    this.saveData();
+                                    this.$nextTick(() => this.initCharts());
+                                    ElementPlus.ElMessage({
+                                        type: 'success',
+                                        message: '删除成功',
+                                    });
+                                }
+                            }
+                        })
+                        .catch(() => {
+                            // cancelled
+                        });
                 },
                 resetForm() {
                     this.newTrade = {
