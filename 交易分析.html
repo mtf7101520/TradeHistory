@@ -3960,75 +3960,123 @@
                     this.$nextTick(() => this.initCharts());
                 },
                 saveData() {
-                    localStorage.setItem('trading_records_archive', JSON.stringify(this.trades));
+                    try {
+                        localStorage.setItem('trading_records_archive', JSON.stringify(this.trades));
+                    } catch (e) {
+                        console.error('Failed to save data:', e);
+                        ElementPlus.ElMessage.error('保存数据失败，可能是存储空间已满。请导出数据备份。');
+                    }
                 },
                 loadData() {
-                    const data = localStorage.getItem('trading_records_archive');
-                    if (data) {
-                        const trades = JSON.parse(data);
-                        // Ensure all trades have a unique ID
-                        Object.keys(trades).forEach(month => {
-                            trades[month].forEach(trade => {
-                                if (!trade.id) {
-                                    trade.id = Date.now().toString() + Math.random(); // Simple unique ID
+                    try {
+                        const data = localStorage.getItem('trading_records_archive');
+                        if (data) {
+                            let trades = {};
+                            try {
+                                trades = JSON.parse(data);
+                            } catch (e) {
+                                console.error('JSON parse error:', e);
+                                trades = {};
+                            }
+
+                            if (typeof trades !== 'object' || trades === null) {
+                                trades = {};
+                            }
+
+                            // Ensure all trades have a unique ID and structure is valid
+                            Object.keys(trades).forEach(month => {
+                                if (!Array.isArray(trades[month])) {
+                                    trades[month] = [];
                                 }
+                                // Filter out null/undefined entries
+                                trades[month] = trades[month].filter(t => t && typeof t === 'object');
+
+                                trades[month].forEach(trade => {
+                                    if (!trade.id) {
+                                        trade.id = Date.now().toString() + Math.random(); // Simple unique ID
+                                    }
+                                });
                             });
-                        });
-                        this.trades = trades;
-                        return;
+                            this.trades = trades;
+                            return;
+                        }
+                    } catch (e) {
+                        console.error('Error loading data:', e);
+                        this.trades = {};
                     }
 
                     // Migration logic for old data format
-                    const oldData = localStorage.getItem('trading_records');
-                    if (oldData) {
-                        const oldTrades = JSON.parse(oldData);
-                        if (Array.isArray(oldTrades)) {
-                            this.trades = oldTrades.reduce((acc, trade) => {
-                                const month = trade.date.substring(0, 7); // YYYY-MM
-                                if (!acc[month]) {
-                                    acc[month] = [];
-                                }
-                                if (!trade.id) {
-                                    trade.id = Date.now().toString() + Math.random(); // Simple unique ID
-                                }
-                                acc[month].push(trade);
-                                return acc;
-                            }, {});
-                            this.saveData(); // Save in new format
-                            localStorage.removeItem('trading_records'); // Remove old data
+                    try {
+                        const oldData = localStorage.getItem('trading_records');
+                        if (oldData) {
+                            const oldTrades = JSON.parse(oldData);
+                            if (Array.isArray(oldTrades)) {
+                                this.trades = oldTrades.reduce((acc, trade) => {
+                                    if (!trade || !trade.date) return acc;
+                                    const month = trade.date.substring(0, 7); // YYYY-MM
+                                    if (!acc[month]) {
+                                        acc[month] = [];
+                                    }
+                                    if (!trade.id) {
+                                        trade.id = Date.now().toString() + Math.random(); // Simple unique ID
+                                    }
+                                    acc[month].push(trade);
+                                    return acc;
+                                }, {});
+                                this.saveData(); // Save in new format
+                                localStorage.removeItem('trading_records'); // Remove old data
+                            }
                         }
+                    } catch (e) {
+                        console.error('Error migrating old data:', e);
                     }
                 },
                 saveTrade() {
-                    const trade = { ...this.newTrade };
-                    if (!trade.id) {
-                        trade.id = Date.now().toString(); // Assign a unique ID
+                    // Validation
+                    if (!this.newTrade.date) {
+                        ElementPlus.ElMessage.warning('请选择交易日期');
+                        return;
                     }
-                    const month = trade.date.substring(0, 7);
+                    if (!this.newTrade.stock) {
+                        ElementPlus.ElMessage.warning('请输入股票代码');
+                        return;
+                    }
 
-                    if (this.isEditing) {
-                        // Find and remove the old trade record using the unique ID
-                        const oldMonth = this.editingTrade.date.substring(0, 7);
-                        if (this.trades[oldMonth]) {
-                            const oldIndex = this.trades[oldMonth].findIndex(t => t.id === this.editingTrade.id);
-                            if (oldIndex > -1) {
-                                this.trades[oldMonth].splice(oldIndex, 1);
-                                if (this.trades[oldMonth].length === 0) {
-                                    delete this.trades[oldMonth];
+                    try {
+                        const trade = { ...this.newTrade };
+                        if (!trade.id) {
+                            trade.id = Date.now().toString(); // Assign a unique ID
+                        }
+                        const month = trade.date.substring(0, 7);
+
+                        if (this.isEditing) {
+                            // Find and remove the old trade record using the unique ID
+                            const oldMonth = this.editingTrade.date.substring(0, 7);
+                            if (this.trades[oldMonth]) {
+                                const oldIndex = this.trades[oldMonth].findIndex(t => t.id === this.editingTrade.id);
+                                if (oldIndex > -1) {
+                                    this.trades[oldMonth].splice(oldIndex, 1);
+                                    if (this.trades[oldMonth].length === 0) {
+                                        delete this.trades[oldMonth];
+                                    }
                                 }
                             }
                         }
-                    }
 
-                    if (!this.trades[month]) {
-                        this.trades[month] = [];
-                    }
-                    this.trades[month].push(trade);
+                        if (!this.trades[month]) {
+                            this.trades[month] = [];
+                        }
+                        this.trades[month].push(trade);
 
-                    this.dialogVisible = false;
-                    this.resetForm();
-                    this.saveData();
-                    this.$nextTick(() => this.initCharts());
+                        this.dialogVisible = false;
+                        this.resetForm();
+                        this.saveData();
+                        this.$nextTick(() => this.initCharts());
+                        ElementPlus.ElMessage.success('保存成功');
+                    } catch (e) {
+                        console.error('Error in saveTrade:', e);
+                        ElementPlus.ElMessage.error('保存失败: ' + e.message);
+                    }
                 },
                 editTrade(trade) {
                     this.editingTrade = trade; // Store the original trade object for editing
