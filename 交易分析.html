@@ -3737,10 +3737,23 @@
                         existingInstance.dispose();
                     }
 
-                    const myChart = echarts.init(chartDom, 'dark');
+                    // 确定要显示的年份列表
+                    let years = [];
+                    if (this.selectedYear === 'all') {
+                        // 从数据中提取所有年份
+                        const dataYears = [...new Set(Object.keys(dailyData).map(d => d.split('-')[0]))].sort();
+                        years = dataYears.length > 0 ? dataYears : [new Date().getFullYear()];
+                    } else {
+                        years = [parseInt(this.selectedYear)];
+                    }
 
-                    // 获取当前年份范围
-                    const currentYear = this.selectedYear === 'all' ? new Date().getFullYear() : parseInt(this.selectedYear);
+                    // 动态调整容器高度
+                    // 每个日历大约需要 200px 高度
+                    const heightPerYear = 200;
+                    const totalHeight = Math.max(350, years.length * heightPerYear + 80); // 80px for visualMap and padding
+                    chartDom.style.height = `${totalHeight}px`;
+
+                    const myChart = echarts.init(chartDom, 'dark');
 
                     // 格式化数据为 [date, profit] 数组
                     const calendarData = Object.entries(dailyData).map(([date, profit]) => {
@@ -3760,6 +3773,35 @@
                         maxProfit = limit;
                         maxLoss = -limit;
                     }
+
+                    // 生成日历配置
+                    const calendars = years.map((year, index) => ({
+                        top: 40 + index * 200,
+                        left: 30,
+                        right: 30,
+                        cellSize: ['auto', 20],
+                        range: year,
+                        itemStyle: {
+                            borderWidth: 1,
+                            borderColor: '#1e293b',
+                            color: '#0f172a'
+                        },
+                        yearLabel: { show: true, color: '#cbd5e1', fontSize: 14, margin: 40 },
+                        dayLabel: { color: '#94a3b8', firstDay: 1, nameMap: 'cn' },
+                        monthLabel: { color: '#94a3b8', nameMap: 'cn' },
+                        splitLine: { show: false }
+                    }));
+
+                    // 生成系列配置
+                    const series = years.map((year, index) => ({
+                        type: 'heatmap',
+                        coordinateSystem: 'calendar',
+                        calendarIndex: index,
+                        data: calendarData,
+                        itemStyle: {
+                            borderRadius: 4
+                        }
+                    }));
 
                     const option = {
                         backgroundColor: 'transparent',
@@ -3782,36 +3824,14 @@
                             calculable: true,
                             orient: 'horizontal',
                             left: 'center',
-                            bottom: 0,
+                            bottom: 10,
                             inRange: {
                                 color: ['#ef4444', '#1e293b', '#10b981'] // 红 -> 深蓝(中性) -> 绿
                             },
                             textStyle: { color: '#cbd5e1' }
                         },
-                        calendar: {
-                            top: 40,
-                            left: 30,
-                            right: 30,
-                            cellSize: ['auto', 25],
-                            range: currentYear,
-                            itemStyle: {
-                                borderWidth: 1,
-                                borderColor: '#1e293b',
-                                color: '#0f172a'
-                            },
-                            yearLabel: { show: true, color: '#cbd5e1', fontSize: 14, margin: 40 },
-                            dayLabel: { color: '#94a3b8', firstDay: 1, nameMap: 'cn' },
-                            monthLabel: { color: '#94a3b8', nameMap: 'cn' },
-                            splitLine: { show: false }
-                        },
-                        series: {
-                            type: 'heatmap',
-                            coordinateSystem: 'calendar',
-                            data: calendarData,
-                            itemStyle: {
-                                borderRadius: 4
-                            }
-                        }
+                        calendar: calendars,
+                        series: series
                     };
 
                     myChart.setOption(option);
