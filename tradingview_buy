@@ -37,6 +37,9 @@ secondSell = input.float(40, title="sellPrecent2", step=1)
 // 止损比例参数
 stopLossPercentage = input.float(2, title="Stop Loss Percentage", step=1)  // 止损比例，默认2%
 
+// 根据ATR动态调整卖出条件
+upPercentage5 = 1.03 + (sellPrecent / 100)  // 动态调整的上涨幅度 3% 基数
+upPercentage10 = 1.06 + (sellPrecent / 100)  // 动态调整的上涨 6% 基数
 upPercentage15 = 1.09 + (sellPrecent/ 100)  // 动态调整的上涨 9% 基数
 
 // 获取买入价格
@@ -109,21 +112,24 @@ plotshape(useCMFStrengthFilter and strongZoneBuySignal, title="CMF强势区域�
           location=location.belowbar, style=shape.diamond, 
           color=color.yellow, size=size.tiny)
 
+// 构建买入消息
+buyMsg = "🚀 买入信号触发\n"
+buyMsg := buyMsg + "━━━━━━━━━━━━━━━━\n"
+buyMsg := buyMsg + "🎫 标的: " + syminfo.ticker + "\n"
+buyMsg := buyMsg + "💲 价格: " + str.tostring(close, "#.##") + "\n"
+buyMsg := buyMsg + "📊 CMF值: " + str.tostring(mf, "#.###") + "\n"
+buyMsg := buyMsg + "🛡️ 止损位: " + str.tostring(close * (1 - stopLossPercentage/100), "#.##") + " (-" + str.tostring(stopLossPercentage) + "%)\n"
+buyMsg := buyMsg + "━━━━━━━━━━━━━━━━"
+
+// Add debug info if filter is on
+if useCMFStrengthFilter
+    buyMsg := buyMsg + "\nDetails: StrongZone=" + str.tostring(cmfInStrengthZone)
+
 if (buySignal)
-    strategy.entry("Buy", strategy.long)
+    strategy.entry("Buy", strategy.long, alert_message=buyMsg)
     entryPrice := close
     totalSoldPercentage := 0.0
-    
-    // 构建触发条件的调试信息
-    debugInfo = "买入信号触发:\n"
-    debugInfo := debugInfo + "buyCMF: " + str.tostring(buyCMF) + "\n"
-    
-    if useCMFStrengthFilter
-        debugInfo := debugInfo + "cmfInStrengthZone: " + str.tostring(cmfInStrengthZone) + "\n"
-    
-    debugInfo := debugInfo + "restrictedBuyZone: " + str.tostring(restrictedBuyZone) + "\n"
-
-    alert(debugInfo, alert.freq_once_per_bar)
+    alert(buyMsg, alert.freq_once_per_bar)
 
 // 动态调整的卖出条件
 sellCondition5 = close >= entryPrice * upPercentage5
@@ -133,30 +139,32 @@ sellCondition15 = close >= entryPrice * upPercentage15
 // 整合卖出信号
 sellAlert = sellCMF
 
-if (sellAlert and (strategy.position_size > 0))
-    alertMessage = "卖出提醒:\n"
-    alertMessage := alertMessage + "sellCMF: " + str.tostring(sellCMF) + "\n"
-if (sellAlert and (strategy.position_size > 0))
-    alertMessage := alertMessage + "upPercentage10: " + str.tostring(upPercentage10) + "\n"
-    alertMessage := alertMessage + "upPercentage15: " + str.tostring(upPercentage15) + "\n"
-    alertMessage := alertMessage + "stopLossPercentage: " + str.tostring(stopLossPercentage) + "\n"
-    
-    alert(alertMessage, alert.freq_once_per_bar)
+// 注意：为了仅在订单执行时触发卖出提醒，此处移除了sellCMF的显式alert调用。
+// 如果希望 sellCMF 触发提醒，建议将其加入平仓条件并使用 alert_message。
 
 // 止损逻辑
 stopLossCondition = close <= entryPrice * (1 - stopLossPercentage / 100)
+
+// 构建止损消息
+slMsg = "🛑 止损触发\n"
+slMsg := slMsg + "━━━━━━━━━━━━━━━━\n"
+slMsg := slMsg + "🎫 标的: " + syminfo.ticker + "\n"
+slMsg := slMsg + "💲 卖出价: " + str.tostring(close, "#.##") + "\n"
+slMsg := slMsg + "📉 亏损幅度: " + str.tostring(stopLossPercentage) + "%\n"
+slMsg := slMsg + "━━━━━━━━━━━━━━━━"
+
 if (stopLossCondition and strategy.position_size > 0)
-    strategy.close("Buy")
+    strategy.close("Buy", alert_message=slMsg)
     totalSoldPercentage := 100.0
-    alert("止损信号：股价跌幅超过, 低于前低 " + str.tostring(stopLossPercentage))
 
 // 分阶段卖出
-    alert("止损信号：股价跌幅超过, 低于前低 " + str.tostring(stopLossPercentage))
+var array<float> sellLevels = array.from(upPercentage5, upPercentage10, upPercentage15)
+var array<float> sellPercents = array.from(firstSell, secondSell, 100 - firstSell - secondSell)
 
 for i = 0 to 2
     if close >= entryPrice * array.get(sellLevels, i) and totalSoldPercentage < 100
-        sellQty = math.min(array.get(sellPercentsrcentage)
-        strategy.close("Buy", qty_percent=sellQty)
+        sellQty = math.min(array.get(sellPercents, i), 100 - totalSoldPercentage)
+        
         // 计算相关数据
         sellPrice = close
         profitPercent = ((sellPrice - entryPrice) / entryPrice) * 100
@@ -170,9 +178,9 @@ for i = 0 to 2
         msg := msg + "📊 本次卖出: " + str.tostring(sellQty, "#.##") + "%\n"
         msg := msg + "💼 剩余仓位: " + str.tostring(remainingPercent, "#.##") + "%\n"
         msg := msg + "━━━━━━━━━━━━━━━━"
-
-        // 发送提醒
-        alert(msg, alert.freq_once_per_bar_close)
+        
+        strategy.close("Buy", qty_percent=sellQty, alert_message=msg)
+        totalSoldPercentage += sellQty
 
 // CMF强势区域警报
 alertcondition(cmfInStrengthZone, title="CMF进入强势区域", message="CMF Entered Strength Zone - Enhanced Buy Signals Active")
