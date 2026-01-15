@@ -861,6 +861,7 @@
       "failureReason": ""
     },
     {
+      "id": "1767519449480",
       "date": "2025-12-23",
       "stock": "002555",
       "stockName": "三七互娱",
@@ -869,10 +870,10 @@
       "price": 22.5,
       "profit": 7037,
       "notes": "",
-      "failureReason": "",
-      "id": "1767519449480"
+      "failureReason": ""
     },
     {
+      "id": "1767519524463",
       "date": "2025-12-25",
       "stock": "601225",
       "stockName": "陕西煤业",
@@ -881,10 +882,10 @@
       "price": 21.6,
       "profit": -899,
       "notes": "",
-      "failureReason": "",
-      "id": "1767519524463"
+      "failureReason": ""
     },
     {
+      "id": "1767519624213",
       "date": "2025-12-23",
       "stock": "002250",
       "stockName": "联化科技",
@@ -893,10 +894,10 @@
       "price": 12.58,
       "profit": 0,
       "notes": "进入策略",
-      "failureReason": "",
-      "id": "1767519624213"
+      "failureReason": ""
     },
     {
+      "id": "1767519714663",
       "date": "2025-12-25",
       "stock": "002250",
       "stockName": "联化科技",
@@ -905,10 +906,10 @@
       "price": 13.18,
       "profit": 1532,
       "notes": "拐头 清仓， 仓位很少， 其实后面又涨了，上涨浮盈的场景怎么好好拿住， 要思考下",
-      "failureReason": "",
-      "id": "1767519714663"
+      "failureReason": ""
     },
     {
+      "id": "1767519796361",
       "date": "2025-12-25",
       "stock": "300035",
       "stockName": "中科电气",
@@ -917,10 +918,10 @@
       "price": 22.17,
       "profit": 0,
       "notes": "1，2，3，4 天信号都很好，但是连续涨了好几天了， 还是决定买入了",
-      "failureReason": "",
-      "id": "1767519796361"
+      "failureReason": ""
     },
     {
+      "id": "1767519885961",
       "date": "2025-12-30",
       "stock": "300035",
       "stockName": "中科电气",
@@ -929,8 +930,141 @@
       "price": 21.7,
       "profit": 0,
       "notes": "稍有回撤，但是3，4，天的信号还是很好， 加仓",
-      "failureReason": "",
-      "id": "1767519885961"
+      "failureReason": ""
+    }
+  ],
+  "2026-01": [
+    {
+      "id": "1767855742915",
+      "date": "2026-01-08",
+      "stock": "600985",
+      "stockName": "淮北矿业",
+      "type": "buy",
+      "quantity": 2900,
+      "price": 11.58,
+      "profit": 0,
+      "notes": "4h 信号， 昨天放量大涨，跳空高开 先买一半",
+      "failureReason": ""
+    },
+    {
+      "id": "1767855365691",
+      "date": "2026-01-08",
+      "stock": "300199",
+      "stockName": "翰宇药业",
+      "type": "reduce",
+      "quantity": 3400,
+      "price": 19.62,
+      "profit": 4100,
+      "notes": "减仓了，之前18.4买入 做T的",
+      "failureReason": ""
+    },
+    {
+      "id": "1768200816245",
+      "date": "2026-01-12",
+      "stock": "600985",
+      "stockName": "淮北矿业",
+      "type": "sell",
+      "quantity": 2900,
+      "price": 11.53,
+      "profit": -172,
+      "notes": "信号没有调头， 之前放量大涨，  往回落本来搏一搏调头的， 没调头就走了。",
+      "failureReason": "信号没有调头， 之前放量大涨，  往回落本来搏一搏调头的， 没调头就走了。"
+    },
+    {
+      "id": "1768200870631",
+      "date": "2026-01-12",
+      "stock": "000568",
+      "stockName": "泸州老窖",
+      "type": "buy",
+      "quantity": 500,
+      "price": 119.27,
+      "profit": 0,
+      "notes": "1，2，3，4，天信号都好 买入",
+      "failureReason": ""
+    },
+    {
+      "id": "1768287693624",
+      "date": "2026-01-13",
+      "stock": "300035",
+      "stockName": "中科电气",
+      "type": "sell",
+      "quantity": 4400,
+      "price": 21.99,
+      "profit": -114,
+      "notes": "3h信号拐头， 4h信号跌破， 天信号跌破。 离场",
+      "failureReason": "盈利的时候没有止盈， 跌回去了，整个长势并不是很好"
+    },
+    {
+      "id": "1768288402068",
+      "date": "2026-01-13",
+      "stock": "300199",
+      "stockName": "翰宇药业",
+      "type": "reduce",
+      "quantity": 1200,
+      "price": 20.48,
+      "profit": 0,
+      "notes": "放量滞涨， 信号拐头， 减仓一半",
+      "failureReason": ""
+    },
+    {
+      "id": "1768380269579",
+      "date": "2026-01-14",
+      "stock": "600985",
+      "stockName": "淮北矿业",
+      "type": "buy",
+      "quantity": 2800,
+      "price": 11.33,
+      "profit": 0,
+      "notes": "买入， 不知道怎么买入的， 好像是误操作。明天看看情况",
+      "failureReason": ""
+    },
+    {
+      "id": "1768380327112",
+      "date": "2026-01-14",
+      "stock": "159928",
+      "stockName": "消费ETF",
+      "type": "buy",
+      "quantity": 64400,
+      "price": 0.798,
+      "profit": 0,
+      "notes": "消费ETF买入， 大逻辑是一直没涨",
+      "failureReason": ""
+    },
+    {
+      "id": "1768460569682",
+      "date": "2026-01-15",
+      "stock": "600985",
+      "stockName": "淮北矿业",
+      "type": "sell",
+      "quantity": 2800,
+      "price": 11.2,
+      "profit": -306,
+      "notes": "条件单忘记删了， 误买入",
+      "failureReason": "条件单忘记删了， 误买入"
+    },
+    {
+      "id": "1768460688414",
+      "date": "2026-01-15",
+      "stock": "000568",
+      "stockName": "泸州老窖",
+      "type": "sell",
+      "quantity": 500,
+      "price": 115.3,
+      "profit": -2023,
+      "notes": "",
+      "failureReason": "信号 拐头了，交易失败，直接清仓"
+    },
+    {
+      "id": "1768460778464",
+      "date": "2026-01-15",
+      "stock": "512170",
+      "stockName": "医疗ETF",
+      "type": "reduce",
+      "quantity": 74300,
+      "price": 0.398,
+      "profit": 0,
+      "notes": "减仓1/4",
+      "failureReason": ""
     }
   ]
 }

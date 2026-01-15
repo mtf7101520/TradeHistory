@@ -51,42 +51,13 @@ lengthCMF = input.int(20, title="cmfLength", minval=1)
 ad = close == high and close == low or high == low ? 0 : ((2 * close - low - high) / (high - low)) * volume
 mf = math.sum(ad, lengthCMF) / math.sum(volume, lengthCMF)
 
-// CMF强势区域参数
-cmfStrengthPeriod = input.int(5, title="CMF强势确认周期", minval=1, maxval=20, group="CMF强势区域")
-cmfStrengthThreshold = input.float(0.1, title="CMF强势阈值", step=0.01, group="CMF强势区域")
-useCMFStrengthFilter = input.bool(false, title="启用CMF强势区域过滤", group="CMF强势区域")
-cmfConsistencyRatio = input.float(0.7, title="强势持续比例", minval=0.5, maxval=1.0, step=0.1, group="CMF强势区域")
-
-// CMF多维度强势判定
-// 1. 基础强势：CMF持续在正值区域
-cmfBullishZone = mf > buffer
-
-// 2. 强势确认：CMF不仅为正，且有一定强度
-cmfStrongBullish = mf > cmfStrengthThreshold
-
-// 3. 持续强势：在指定周期内大部分时间处于强势
-cmfConsistentStrength = math.sum(cmfBullishZone ? 1 : 0, cmfStrengthPeriod) >= math.round(cmfStrengthPeriod * cmfConsistencyRatio)
-
-// 4. 趋势强势：CMF呈上升趋势
-cmfMA = ta.sma(mf, 3)
-cmfTrendUp = cmfMA > cmfMA[1]
-
-// 5. 综合强势指标（核心强势区域判定）
-cmfInStrengthZone = cmfBullishZone and cmfConsistentStrength and (cmfStrongBullish or cmfTrendUp)
-
-// 6. 弱势区域警告
-cmfWeakZone = mf < -cmfStrengthThreshold and math.sum(mf < -buffer ? 1 : 0, cmfStrengthPeriod) >= 3
-
 // CMF穿越信号
 buyCMF = ta.crossover(mf, buffer)      // 瞬时资金流入信号
 sellCMF = ta.crossunder(mf, -buffer)  // 瞬时资金流出信号
 
 // CMF可视化
-bgcolor(cmfInStrengthZone ? color.new(color.blue, 90) : cmfWeakZone ? color.new(color.red, 95) : na, title="CMF强势/弱势区域")
 plot(mf, color=color.purple, linewidth=2, title="CMF")
 hline(0, "CMF零轴", color=color.gray, linestyle=hline.style_dashed)
-hline(cmfStrengthThreshold, "强势阈值", color=color.blue, linestyle=hline.style_dotted)
-hline(-cmfStrengthThreshold, "弱势阈值", color=color.red, linestyle=hline.style_dotted)
 hline(buffer, "买入缓冲", color=color.green, linestyle=hline.style_dotted, linewidth=1)
 hline(-buffer, "卖出缓冲", color=color.red, linestyle=hline.style_dotted, linewidth=1)
 // === CMF优化指标系统 END ===
@@ -94,23 +65,9 @@ hline(-buffer, "卖出缓冲", color=color.red, linestyle=hline.style_dotted, li
 // 已卖出比例变量
 var float totalSoldPercentage = 0.0
 
-// === 优化后的买入信号逻辑 ===
-// 在CMF强势区域内触发买入
-strongZoneBuySignal = cmfInStrengthZone
-
+// === 买入信号逻辑 ===
 // 基础买入信号：CMF上穿buffer
-condition1 = buyCMF
-
-// 弱势区域限制（在CMF弱势区域减少买入）
-restrictedBuyZone = cmfWeakZone and useCMFStrengthFilter
-
-// 最终买入信号整合
-buySignal = (condition1 or (useCMFStrengthFilter ? strongZoneBuySignal : false)) and not restrictedBuyZone
-
-// 强势区域买入信号标记
-plotshape(useCMFStrengthFilter and strongZoneBuySignal, title="CMF强势区域买入", 
-          location=location.belowbar, style=shape.diamond, 
-          color=color.yellow, size=size.tiny)
+buySignal = buyCMF
 
 // 构建买入消息
 buyMsg = "🚀 买入信号触发\n"
@@ -120,10 +77,6 @@ buyMsg := buyMsg + "💲 价格: " + str.tostring(close, "#.##") + "\n"
 buyMsg := buyMsg + "📊 CMF值: " + str.tostring(mf, "#.###") + "\n"
 buyMsg := buyMsg + "🛡️ 止损位: " + str.tostring(close * (1 - stopLossPercentage/100), "#.##") + " (-" + str.tostring(stopLossPercentage) + "%)\n"
 buyMsg := buyMsg + "━━━━━━━━━━━━━━━━"
-
-// Add debug info if filter is on
-if useCMFStrengthFilter
-    buyMsg := buyMsg + "\nDetails: StrongZone=" + str.tostring(cmfInStrengthZone)
 
 if (buySignal)
     strategy.entry("Buy", strategy.long, alert_message=buyMsg)
@@ -138,9 +91,6 @@ sellCondition15 = close >= entryPrice * upPercentage15
 
 // 整合卖出信号
 sellAlert = sellCMF
-
-// 注意：为了仅在订单执行时触发卖出提醒，此处移除了sellCMF的显式alert调用。
-// 如果希望 sellCMF 触发提醒，建议将其加入平仓条件并使用 alert_message。
 
 // 止损逻辑
 stopLossCondition = close <= entryPrice * (1 - stopLossPercentage / 100)
@@ -181,7 +131,4 @@ for i = 0 to 2
         
         strategy.close("Buy", qty_percent=sellQty, alert_message=msg)
         totalSoldPercentage += sellQty
-
-// CMF强势区域警报
-alertcondition(cmfInStrengthZone, title="CMF进入强势区域", message="CMF Entered Strength Zone - Enhanced Buy Signals Active")
-alertcondition(cmfWeakZone, title="CMF进入弱势区域", message="CMF Entered Weak Zone - Buy Signals Restricted")
+        
